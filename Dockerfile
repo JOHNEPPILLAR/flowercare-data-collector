@@ -1,16 +1,11 @@
 # syntax=docker/dockerfile:1
 
 # Base image
-FROM golang:bullseye as base
-RUN apt-get update
-RUN export GO111MODULE=on
+FROM golang:alpine as base-build
 WORKDIR /app
 
-# Build app
-FROM base as build
-
-# Install git
-RUN apt-get install -y git
+# Update and install git
+RUN apk update && apk add git
 
 # Setup private repo
 ARG GO_PRIVATE_REPO_KEY
@@ -22,16 +17,22 @@ RUN { echo "machine github.com"; echo "login JOHNEPPILLAR"; echo "password $GO_P
 COPY go.mod ./ 
 COPY go.sum ./
 
-# Download packages & build app
-RUN go mod download
-COPY *.go ./
-RUN go build -o flowercare_collector
+# Download packages
+RUN go mod download && go mod verify
 
-# Create final image
-FROM base as final
-RUN apt-get install -y tzdata sudo bluez bluetooth libbluetooth-dev libudev-dev
+# Build app
+COPY . .
+RUN go build -o /flowercare cmd/main.go
+
+FROM golang:latest
+
+# Add additional libs
+RUN apt update -y
+RUN apt install -y ca-certificates tzdata bluez bluetooth libbluetooth-dev libudev-dev
+
+# Set timezone and copy built app
 ENV TZ=Europe/London
-COPY --from=build /app/flowercare_collector ${HOME}
+COPY --from=base-build /flowercare ./flowercare
 
 # Setup start script
 COPY docker-entrypoint.sh ./

@@ -30,6 +30,7 @@ jobs:
     - name: Build app
       run: go build -v ./...
 
+
     - name: Slack Notification on failure
       if: failure()
       uses: rtCamp/action-slack-notify@master
@@ -49,47 +50,38 @@ jobs:
 
     steps:
       - name: Checkout code
-        if: success()
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.REPO_ACCESS }}
 
       - name: Login to private registery
         if: success()
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login ${{ secrets.DOCKER_REGISTERY_URL }} -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Set up QEMU
+      - name: Tag repo code
         if: success()
-        uses: docker/setup-qemu-action@master
+        run: git tag v0.0.${{github.run_number}}
 
-      - name: Set up Docker Buildx
+      - name: Build docker container
         if: success()
-        id: buildx
-        uses: docker/setup-buildx-action@master
+        run: docker build --build-arg GO_PRIVATE_REPO_KEY=${{ secrets.REPO_ACCESS }} . -t ${{ secrets.DOCKER_REGISTERY_URL }}/flowercare-data-collector:0.0.${{github.run_number}}
 
-      - name: Docker build and push
+      - name: Push docker container to private registery
         if: success()
-        uses: docker/build-push-action@master
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ secrets.DOCKER_REGISTERY_URL }}/flowercare_collector:v1.0.${{github.run_number}}
-          build-args: GO_PRIVATE_REPO_KEY=${{ secrets.REPO_ACCESS }}
+        run: docker push ${{ secrets.DOCKER_REGISTERY_URL }}/flowercare-data-collector:0.0.${{github.run_number}}
 
-      - name: Tag with new ver
+      - name: Push new tag
         if: success()
-        run: |
-          git tag v1.0.${{github.run_number}}
-          git push origin v1.0.${{github.run_number}}
+        run: git push origin v0.0.${{github.run_number}}
 
       - name: Slack Notification on failure
         if: failure()
-        uses: rtCamp/action-slack-notify@master
+        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_CHANNEL: github_builds
           SLACK_USERNAME: "Github CI"
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_ICON: https://avatars2.githubusercontent.com/u/25100863?s=40&v=4
-          SLACK_TITLE: "CI/CD failed - (Go) FlowerCare Collector"
-          SLACK_MESSAGE: "Docker build failed  :bangbang:"
+          SLACK_TITLE: "CD failed - (Go) Flowercare - Data Collector"
+          SLACK_MESSAGE: "Deploy failed  :bangbang:"
           SLACK_COLOR: "#ff0000"
-  
