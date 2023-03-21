@@ -3,7 +3,7 @@
 # Base image
 FROM golang:bullseye as base
 RUN apt-get update
-RUN export GO111MODULE=on
+#RUN export GO111MODULE=on
 WORKDIR /app
 
 # Build app
