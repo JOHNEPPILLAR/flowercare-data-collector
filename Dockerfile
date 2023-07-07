@@ -24,8 +24,7 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -o /flowercare cmd/main.go
 
-# Start fresh from a smaller image
-FROM alpine:latest
+FROM golang:latest
 
 # Add certs and tzdata
 RUN apk update && apk add ca-certificates && apk add tzdata bluez bluetooth libbluetooth-dev libudev-dev
