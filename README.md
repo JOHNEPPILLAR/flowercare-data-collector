@@ -1,5 +1,8 @@
 # flowercare-data-collector
 
+![go](https://badges.aleen42.com/src/golang.svg) ![Build](https://github.com/JOHNEPPILLAR/flowercare-data-collector/actions/workflows/go.yml/badge.svg) [![GitHub tag](https://img.shields.io/github/tag/johneppillar/flowercare-data-collector?include_prereleases=&sort=semver&color=blue)](https://github.com/johneppillar/flowercare-data-collector/releases/)
+[![License](https://img.shields.io/badge/License-MIT-blue)](#license)
+
 A Golang app for connecting to MiFlora/Flowercare IoT plant sensors.
 
 Why I created this library
