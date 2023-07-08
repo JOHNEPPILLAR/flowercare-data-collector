@@ -26,8 +26,9 @@ RUN go build -o /flowercare cmd/main.go
 
 FROM golang:latest
 
-# Add certs and tzdata
-RUN apt update && apt add ca-certificates && apt add tzdata bluez bluetooth libbluetooth-dev libudev-dev
+# Add additional libs
+RUN apt update -y
+RUN apt install -y ca-certificates tzdata bluez bluetooth libbluetooth-dev libudev-dev
 
 # Set timezone and copy built app
 ENV TZ=Europe/London
